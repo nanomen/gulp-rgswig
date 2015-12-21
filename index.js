@@ -23,7 +23,7 @@ swig.Swig({
 // Аргументы:
 // @input итерируемый элемент,
 // @arrayMask - массив, в котором ищем совпадение 
-swig.setFilter('customInArray', function (input, arrayMask) {
+swig.setFilter('rgInArray', function (input, arrayMask) {
     var i = 0;
     
     for (; i < arrayMask.length; i++) {
