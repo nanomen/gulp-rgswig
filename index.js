@@ -1,24 +1,22 @@
 /*
- * Дполнительные модули
+ * Gulp-plugin for custom processing swig templates
+ * @author: rg team
  *
  */
 
-// Обработка путей
 var path = require('path');
-
-// Поток событий
 var es = require('event-stream');
+var gutil = require('gulp-util');
 
-// Swig шаблонизатор
 var swig = require('swig');
 
-// Кастомизируем обработку переменных
+// Set custom varControls
 swig.Swig({
     varControls: ['{[', ']}']
 });
 
 // Кастомный фильтр
-// проверяет нахождение элементов в даннх,
+// проверяет нахождение элементов в данных,
 // к которым применяем фильтр
 // 
 // Аргументы:
@@ -37,147 +35,268 @@ swig.setFilter('customInArray', function (input, arrayMask) {
 
 });
 
-// Настройка модуля наследования 
-var _ = require('lodash'); // библиотека работы с данными
-var extendify = require('extendify'); // надстройка для lodash, с более тонким мержем файлов
+// Кастомный фильтр
+// получает комментарий из пути файла
+// 
+// Аргументы:
+// @input итерируемый элемент
+swig.setFilter('rgPathComm', function (input) {
+    return input.split('.').slice(0, -1).join('/').replace(pathMap.src._, '').split('/').join('.').substr(1);
+});
 
-// настраиваем extendify
-// для мержа файлов
+
+
+
+
+// Customize extend method LoDash
+var _ = require('lodash');
+var extendify = require('extendify');
 _.extend = extendify({
     arrays: 'concat'
 });
 
-// Gulp утилиты
-var gutil = require('gulp-util');
+
+
 
 /*
- * Методы помощники
+ * Helpers
  *
  */
 
-// Возвращает путь, на одну папку выше
+// If resource exists
+var resExistsSync = function(path) {
+
+    try {
+        fs.statSync(path);
+        return true;
+    } catch (err) {
+        return false;
+    }
+};
+
+// Get parent folder
 var parentDir = function(path) {
     return path.split('/').slice(0, -1).join('/');
-}
+};
+
+// Find template file
+var findTmpl = function(dirPath) {
+
+    var targetDir = null,
+        tmplFile = 'route.html',
+        targetFile = null;
+
+    // #1 Find setup
+    targetDir = parentDir(dirPath);
+    targetFile = targetDir + '/' + tmplFile;
+
+    // #1 Find process
+    if (resExistsSync(targetFile)) {
+        return targetFile;
+    } else { // if not file, go to parent dir
+
+        // #2 Find setup
+        targetDir = parentDir(targetDir);
+        targetFile = targetDir + '/' + tmplFile;
+
+        // #2 Find process
+        if (resExistsSync(targetFile)) {
+            return targetFile;
+        } else { // if not file, go to default template
+
+            // #3 Find setup
+            targetDir = parentDir(parentDir(targetDir));
+            targetFile = targetDir + '/' + tmplFile;
+
+            // #3 Find process
+            if (resExistsSync(targetFile)) {
+                return targetFile;
+            }
+
+        }
+
+    }
+
+    return null;
+};
+
+// Find crossdata file
+var findCrossData = function(dirPath) {
+
+    var targetDir = dirPath,
+        crossData = '/crosspages/page.js';
+
+    // #1 Find setup
+    targetFile = targetDir + crossData;
+
+    // #1 Find process
+    if (resExistsSync(targetFile)) {
+        return targetFile;
+    } else { // if not file, go to parent dir
+
+        // #2 Find setup
+        targetDir = parentDir(parentDir(targetDir));
+        targetFile = targetDir + crossData;
+
+        // #2 Find process
+        if (resExistsSync(targetFile)) {
+            return targetFile;
+        } else { // if not file, go to default template
+
+            // #3 Find setup
+            targetDir = parentDir(parentDir(targetDir));
+            targetFile = targetDir + '/data' + crossData;
+
+            // #3 Find process
+            if (resExistsSync(targetFile)) {
+                return targetFile;
+            }
+
+        }
+
+    }
+
+    return null;
+
+};
 
 
 /*
- * Экспортируем модуль
+ * Module
  *
  */
 
-module.exports = function(options) {
+module.exports = function(userOptions) {
 
     'use strict';
 
     /*
-     * Настройка шаблонизатора
+     * Setup
      *
      */
 
     var
 
-        // опции
-        swigOpts = options.swigOpts || null;
+        // default options
+        options = {
 
-    // Применяем опции
-    if (!!swigOpts) {
-        swig.Swig(swigOpts);
-    }
+            // Custom options for swig
+            swigOpts: {
+                varControls: ['{[', ']}']
+            },
 
-    /*
-     * Обработка шаблона
-     *
-     */
+            // Param module
+            param: {
 
-    var 
-        // Будущий шаблон
-        tmpl = null, 
+                // Process type
+                compileType: 'tmpl',
 
-        // Будущие данные
-        tmplData = null,
+                // Ext template
+                extFile: '.html'
+            }
+        };
 
-        // Шаблонные данные
-        tmplCrossData = null,
 
-        // Будущий скомпилированный шаблон
-        compiled = null,
-        
-        // В зависимости от типа, выбираем логику обработки
-        compileType = options.param.compileType || 'tmpl',
+    // Update options
+    _.extend(options, userOptions);
 
-        // Тип расширения шаблона
-        extFile = options.param.ext || '.html';    
+    // Set swig custom options
+    swig.Swig(options.swigOpts);
 
-    // Обрвботка данных
-    //      @file - файловый буффер
-    //      @callback - функция, которая обяхательно вызывается в потоке
-    //      ей можно передать ошибку, данные, или ничего не передавать
+
+    // Data processing
+    //      @file - file pass gulp
+    //      @callback - process function
 
     var rgswig = function(file, callback) {
 
-        // Отправляем данные дальше в поток
+        var
+
+            // File contents
+            fileContents = file.contents,
+
+            // File path
+            filePath = file.path,
+
+            // src dest
+            dirPath = null,
+
+            // Compile type
+            compileType = options.param.compileType,
+
+            // Ext file
+            extFile = options.param.extFile,
+
+            /*
+             * Template var
+             *
+             */
+
+            // Template
+            tmpl = null, 
+
+            // Template data
+            tmplData = (options.data) ? options.data : null,
+
+            // Template cross data
+            tmplCrossData = null,
+
+            // Compiled template
+            compiled = null;
+
+        // Processing
         try {
 
-            // Если просто компиляция шаблона
+            // If process from template
             if (compileType === 'tmpl') {
 
-                // Обрабатываем шаблон
+                // Compile template file
                 tmpl = swig.compile(
-                    String(file.contents),
+                    String(fileContents),
                     {
-                        filename: file.path
+                        filename: filePath
                     }
                 );
 
-            } else if (compileType === 'data') { // Если собираем шаблоны по данным
+            } else if (compileType === 'data') { // If process from data
 
-                //console.log('tmpl ' + parentDir(path.dirname(file.path)) + '/route.html');
-                //console.log('tmplData ' + file.path);
-                //console.log('tmplCrossData ' + path.dirname(file.path) + '/crosspages/page.js\n');
+                // Store dir path file, when watch gulp
+                dirPath = path.dirname(filePath);
 
-                //console.log('file.relative ' + file.relative);
-                //console.log('file.base ' + file.base + '\n');
+                // Compile template file
+                tmpl = swig.compileFile(findTmpl(dirPath));
 
-                // Обрабатываем файл шаблона
-                tmpl = swig.compileFile(parentDir(path.dirname(file.path)) + '/route.html');
+                // Set crossdata file
+                tmplCrossData = require(findCrossData(dirPath));
 
-                // Задаем файл данных
-                tmplData = require(file.path);
+                // Merge data template
+                tmplData = _.extend({}, tmplCrossData, require(filePath).toMerge);
 
-                // Задаем файл шаблонных данных
-                tmplCrossData = require(path.dirname(file.path) + '/crosspages/page');
-
-                // Объединяем его с маской данных
-                tmplData = _.extend(tmplCrossData, tmplData.toMerge);
-
-                // Изменяем расширение
-                file.path = gutil.replaceExtension(file.path, extFile);
+                // Set extension
+                file.path = gutil.replaceExtension(filePath, extFile);
 
             } else {
                 throw Error('неверно задан тип компиляции');
             }
 
-            // Скомпилированный шаблон
+            // Compile template
             compiled = tmpl(tmplData);
 
-            // Сохраняем данные
+            // Save data
             file.contents = new Buffer(compiled);
 
-            // Отправляем дальше в поток
+            // Send data
             callback(null, file);
 
         } catch (err) {
 
-            // Кидаем ошибку
+            // Send error
             callback(err);
         }
 
     };
 
-    // Возвращаем поток данных
-    // Метод map получает функцию,
-    // которая асинхронно обрабатывается в потоке
+    // Return data 
     return es.map(rgswig);
 
 };
