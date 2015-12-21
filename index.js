@@ -4,6 +4,7 @@
  *
  */
 
+var fs = require('fs');
 var path = require('path');
 var es = require('event-stream');
 var gutil = require('gulp-util');
@@ -65,11 +66,11 @@ _.extend = extendify({
 
 // If resource exists
 var resExistsSync = function(path) {
-
     try {
         fs.statSync(path);
         return true;
     } catch (err) {
+		console.error('Error check file exist: ' + err);
         return false;
     }
 };
