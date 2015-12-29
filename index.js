@@ -70,7 +70,6 @@ var resExistsSync = function(path) {
         fs.statSync(path);
         return true;
     } catch (err) {
-        console.error('Error check file exist: ' + err);
         return false;
     }
 };
