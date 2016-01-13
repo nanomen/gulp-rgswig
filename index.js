@@ -40,11 +40,38 @@ swig.setFilter('rgInArray', function (input, arrayMask) {
 // получает комментарий из пути файла
 // 
 // Аргументы:
-// @input итерируемый элемент
-swig.setFilter('rgPathComm', function (input) {
-    return input.split('.').slice(0, -1).join('/').replace(pathMap.src._, '').split('/').join('.').substr(1);
+// @_input итерируемый элемент
+swig.setFilter('rgPathComm', function (_input) {
+
+    var input = _input.split('.');
+
+    return input[0].replace(pathMap.src._, '').split('/').join('.').substr(1);
 });
 
+
+// Кастомный фильтр
+// split
+// разбиваем строку на элементы массива по delimiter
+swig.setFilter('split', function (_input, delimiter) {
+    
+    // Если входящий элемент не строка,
+    // возвращаем его
+    if (typeof _input !== 'string') {
+        return _input;
+    }
+
+    return _input.split(delimiter);
+  
+});
+
+// Кастомный фильтр
+// reverse
+// Переопределяем дефолтный фильр,
+// так как он является только алиасом input|sort(true) и делает не совсем то, что ожидается.
+swig.setFilter('reverse', function (_input) {
+    
+    return _input.reverse();
+});
 
 
 
