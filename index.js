@@ -73,6 +73,16 @@ swig.setFilter('reverse', function (_input) {
     return _input.reverse();
 });
 
+// Кастомный фильтр
+// getRGB
+// подключает RGB блок и отдает его в шаблон
+swig.setFilter('getRGB', function(rgb){
+
+    // Подключаем RGB и отдаем данные
+    return require(pathMap._ + '/rgb')(rgb);
+
+});
+
 
 
 
