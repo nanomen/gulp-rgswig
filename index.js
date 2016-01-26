@@ -42,10 +42,7 @@ swig.setFilter('rgInArray', function (input, arrayMask) {
 // Аргументы:
 // @_input итерируемый элемент
 swig.setFilter('rgPathComm', function (_input) {
-
-    var input = _input.split('.');
-
-    return input[0].replace(pathMap.src._, '').split('/').join('.').substr(1);
+    return _input.replace(pathMap.src._, '');
 });
 
 
