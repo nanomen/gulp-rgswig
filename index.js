@@ -8,6 +8,7 @@ var fs = require('fs');
 var path = require('path');
 var es = require('event-stream');
 var gutil = require('gulp-util');
+var _ = require('lodash');
 
 var swig = require('swig');
 
@@ -42,7 +43,9 @@ swig.setFilter('rgInArray', function (input, arrayMask) {
 // Аргументы:
 // @_input итерируемый элемент
 swig.setFilter('rgPathComm', function (_input) {
+
     return _input.replace(pathMap.src._, '');
+
 });
 
 
@@ -68,6 +71,7 @@ swig.setFilter('split', function (_input, delimiter) {
 swig.setFilter('reverse', function (_input) {
     
     return _input.reverse();
+
 });
 
 // Кастомный фильтр
@@ -80,11 +84,22 @@ swig.setFilter('getRGB', function(rgb){
 
 });
 
+// Кастомный фильтр
+// isObject
+// проверяет является ли объектом значение
+// Под объектом понимается любое значение,
+// кроме простого - строка, число, boolean
+swig.setFilter('isObject', function(val){
+
+    // Отправляем результат
+    return _.isObject(val);
+
+});
+
 
 
 
 // Customize extend method LoDash
-var _ = require('lodash');
 var extendify = require('extendify');
 _.extend = extendify({
     arrays: 'concat'
