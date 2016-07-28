@@ -18,7 +18,8 @@
     "event-stream": "~3.0.15",
     "extendify": "^0.1.0",
     "gulp": "~3.5.1",
-	"gulp-util": "^3.0.7",
+	  "gulp-util": "^3.0.7",
+    "minimist": "^1.2.0",
     "lodash": "^3.10.1",
     "swig": "1.4.*"
   },

@@ -9,6 +9,7 @@ var path = require('path');
 var es = require('event-stream');
 var gutil = require('gulp-util');
 var _ = require('lodash');
+var minimist = require('minimist');
 
 var swig = require('swig');
 
@@ -20,18 +21,18 @@ swig.Swig({
 // Кастомный фильтр
 // проверяет нахождение элементов в данных,
 // к которым применяем фильтр
-// 
+//
 // Аргументы:
 // @input итерируемый элемент,
-// @arrayMask - массив, в котором ищем совпадение 
+// @arrayMask - массив, в котором ищем совпадение
 swig.setFilter('rgInArray', function (input, arrayMask) {
     var i = 0;
-    
+
     for (; i < arrayMask.length; i++) {
         if (input === arrayMask[i]) {
             return true
         }
-    } 
+    }
 
     return false;
 
@@ -39,7 +40,7 @@ swig.setFilter('rgInArray', function (input, arrayMask) {
 
 // Кастомный фильтр
 // получает комментарий из пути файла
-// 
+//
 // Аргументы:
 // @_input итерируемый элемент
 swig.setFilter('rgPathComm', function (_input) {
@@ -53,7 +54,7 @@ swig.setFilter('rgPathComm', function (_input) {
 // split
 // разбиваем строку на элементы массива по delimiter
 swig.setFilter('split', function (_input, delimiter) {
-    
+
     // Если входящий элемент не строка,
     // возвращаем его
     if (typeof _input !== 'string') {
@@ -61,7 +62,7 @@ swig.setFilter('split', function (_input, delimiter) {
     }
 
     return _input.split(delimiter);
-  
+
 });
 
 // Кастомный фильтр
@@ -69,7 +70,7 @@ swig.setFilter('split', function (_input, delimiter) {
 // Переопределяем дефолтный фильр,
 // так как он является только алиасом input|sort(true) и делает не совсем то, что ожидается.
 swig.setFilter('reverse', function (_input) {
-    
+
     return _input.reverse();
 
 });
@@ -282,7 +283,7 @@ module.exports = function(userOptions) {
              */
 
             // Template
-            tmpl = null, 
+            tmpl = null,
 
             // Template data
             tmplData = (options.data) ? options.data : null,
@@ -291,10 +292,22 @@ module.exports = function(userOptions) {
             tmplCrossData = null,
 
             // Compiled template
-            compiled = null;
+            compiled = null,
+
+            // Node Arguments
+            nodeArgv = null,
+
+            // Environment
+            processEnv = null;
 
         // Processing
         try {
+
+            // Get node arguments
+            nodeArgv = minimist(process.argv);
+
+            // Set Environment
+            processEnv = nodeArgv.env || 'dev';
 
             // If process from template
             if (compileType === 'tmpl') {
@@ -321,6 +334,9 @@ module.exports = function(userOptions) {
                 // Merge data template
                 tmplData = _.extend({}, tmplCrossData, require(filePath).toMerge);
 
+                // Add Environment in data template
+                tmplData = _.extend({}, tmplData, { env: processEnv });
+
                 // Set extension
                 file.path = gutil.replaceExtension(filePath, extFile);
 
@@ -345,7 +361,7 @@ module.exports = function(userOptions) {
 
     };
 
-    // Return data 
+    // Return data
     return es.map(rgswig);
 
 };
