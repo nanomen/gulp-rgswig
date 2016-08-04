@@ -11,8 +11,7 @@
     "url": "git+https://github.com/nanomen/gulp-rgswig.git"
   },
   "author": {
-    "name": "RG team",
-    "email": "dev@rg.ru"
+    "name": "RG team"
   },
   "dependencies": {
     "event-stream": "~3.0.15",
