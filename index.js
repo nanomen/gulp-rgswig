@@ -298,7 +298,10 @@ module.exports = function(userOptions) {
             nodeArgv = null,
 
             // Environment
-            processEnv = null;
+            processEnv = null,
+
+            // Use custom minify (for current xml minify)
+            customHtmlMinify = (options.customHtmlMinify) ? true : false;
 
         // Processing
         try {
@@ -342,6 +345,14 @@ module.exports = function(userOptions) {
 
             } else {
                 throw Error('неверно задан тип компиляции');
+            }
+
+            // Compile template,
+            // Whitch customMinify or not
+            if (customHtmlMinify) {
+                compiled = tmpl(tmplData).replace(/\r|\n}/g, '').replace(/\t{1,}|\s{2,}/g, ' ');
+            } else {
+                compiled = tmpl(tmplData);
             }
 
             // Compile template
