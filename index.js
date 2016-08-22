@@ -355,9 +355,6 @@ module.exports = function(userOptions) {
                 compiled = tmpl(tmplData);
             }
 
-            // Compile template
-            compiled = tmpl(tmplData);
-
             // Save data
             file.contents = new Buffer(compiled);
 
