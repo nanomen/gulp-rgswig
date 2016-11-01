@@ -312,6 +312,9 @@ module.exports = function(userOptions) {
             // Set Environment
             processEnv = nodeArgv.env || 'dev';
 
+            // Set ENV as global
+            global.env = processEnv;
+
             // If process from template
             if (compileType === 'tmpl') {
 
