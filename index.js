@@ -265,6 +265,9 @@ module.exports = function(userOptions) {
             // File contents
             fileContents = file.contents,
 
+            // Inline style data
+            styleData = null,
+
             // File path
             filePath = file.path,
 
@@ -290,6 +293,9 @@ module.exports = function(userOptions) {
 
             // Template cross data
             tmplCrossData = null,
+
+            // Template custom data
+            tmplCustomData = null,
 
             // Compiled template
             compiled = null,
@@ -342,6 +348,44 @@ module.exports = function(userOptions) {
 
                 // Add Environment in data template
                 tmplData = _.extend({}, tmplData, { env: processEnv });
+
+                // fs.writeFile('/www/app/branches/chagin/temp/data.js', JSON.stringify(tmplData, false, '\t'), function(err) {
+
+                //     if (err) {
+                //         return console.log(err);
+                //     }
+
+                //     console.log("The file data was saved!");
+
+                // });
+
+                try {
+
+                    // Get style data
+                    styleData = JSON.parse(String(file.contents)).styleData;
+
+                    // if sass data is exist
+                    if (!!styleData) {
+
+                        // Add Sass data
+                        tmplData = _.extend({}, tmplData, { styleData: styleData });
+                    }
+
+                } catch (err) {
+
+                    console.log(file.path, 'sass error. it is ok :)');
+
+                    // fs.writeFile('/www/app/branches/css/temp/errors/sassError' + Math.random().toFixed(5)*100000 + '.js', JSON.stringify(file.path, false, '\t'), function(err) {
+
+                    //     if (err) {
+                    //         return console.log(err);
+                    //     }
+
+                    //     console.log("The file data was saved!");
+
+                    // });
+
+                }
 
                 // Set extension
                 file.path = gutil.replaceExtension(filePath, extFile);
