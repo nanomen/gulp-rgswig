@@ -11,6 +11,12 @@ var gutil = require('gulp-util');
 var _ = require('lodash');
 var minimist = require('minimist');
 
+// Customize extend method LoDash
+var extendify = require('extendify');
+_.extend = extendify({
+    arrays: 'concat'
+});
+
 var swig = require('swig');
 
 // Set custom varControls
@@ -97,15 +103,15 @@ swig.setFilter('isObject', function(val){
 
 });
 
+// Кастомный фильтр
+// merge
+// Объединяем данные
+swig.setFilter('merge', function(_input, mergeData){
 
+    // Отправляем результат
+    return _.extend({}, _input, mergeData);
 
-
-// Customize extend method LoDash
-var extendify = require('extendify');
-_.extend = extendify({
-    arrays: 'concat'
 });
-
 
 
 
