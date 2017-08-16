@@ -19,11 +19,6 @@ _.extend = extendify({
 
 var swig = require('swig');
 
-// Set custom varControls
-swig.Swig({
-    varControls: ['{[', ']}']
-});
-
 // Кастомный фильтр
 // проверяет нахождение элементов в данных,
 // к которым применяем фильтр
@@ -254,10 +249,47 @@ module.exports = function(userOptions) {
 
 
     // Update options
-    _.extend(options, userOptions);
+    _.merge(options, userOptions);
+
 
     // Set swig custom options
     swig.Swig(options.swigOpts);
+
+    /**
+     *  Set custom filters for swig from {object} options
+     *
+     *  @example
+     *  "filters": [
+     *      {
+     *          "name": 'rgInArray',                        // filter name
+     *          "handler": function (input, arrayMask) {    // realization of filter
+     *              var i = 0;
+     *
+     *              for (; i < arrayMask.length; i++) {
+     *                  if (input === arrayMask[i]) {
+     *                      return true
+     *                  }
+     *              }
+     *
+     *              return false;
+     *
+     *          }
+     *      },
+     *  ]
+     */
+    if (Array.isArray(options.filters) && options.filters.length) {
+
+        options.filters.forEach(function(filter, index){
+
+            if (filter.name && filter.handler) {
+
+                swig.setFilter(filter.name, filter.handler)
+
+            }
+
+        });
+
+    }
 
 
     // Data processing
@@ -355,7 +387,7 @@ module.exports = function(userOptions) {
                 // Add Environment in data template
                 tmplData = _.extend({}, tmplData, { env: processEnv });
 
-                // fs.writeFile('/www/app/branches/chagin/temp/data.js', JSON.stringify(tmplData, false, '\t'), function(err) {
+                // fs.writeFile('/www/app/branches/auto/temp/data.js', JSON.stringify(tmplData, false, '\t'), function(err) {
 
                 //     if (err) {
                 //         return console.log(err);
