@@ -175,7 +175,7 @@ var findTmpl = function(dirPath) {
 var findCrossData = function(dirPath) {
 
     var targetDir = dirPath,
-        crossData = '/crosspages/page.js';
+        crossData = '/tmpl/page.js';
 
     // #1 Find setup
     targetFile = targetDir + crossData;
