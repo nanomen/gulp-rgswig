@@ -134,7 +134,8 @@ var parentDir = function(path) {
 var findTmpl = function(dirPath) {
 
     var targetDir = null,
-        tmplFile = 'templates.swig',
+        // for new site tmplFile = 'templates.swig',
+        tmplFile = 'route.html',
         targetFile = null;
 
     // #1 Find setup
@@ -175,7 +176,8 @@ var findTmpl = function(dirPath) {
 var findCrossData = function(dirPath) {
 
     var targetDir = dirPath,
-        crossData = '/includes/page.js';
+        crossData = '/crosspages/page.js';
+        // for new site : crossData = '/includes/page.js';
 
     // #1 Find setup
     targetFile = targetDir + crossData;
